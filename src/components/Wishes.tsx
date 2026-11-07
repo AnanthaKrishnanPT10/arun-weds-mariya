@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type SubmitEvent } from 'react'
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc } from 'firebase/firestore'
 import { auth, db, ensureGuest } from '../firebase'
 import Heading from './Heading'
@@ -53,7 +53,7 @@ export default function Wishes() {
     return () => { cancelled = true }
   }, [])
 
-  async function send(e: FormEvent) {
+  async function send(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
     const n = name.trim()
