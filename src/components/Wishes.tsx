@@ -80,7 +80,7 @@ export default function Wishes() {
   return (
     <section id="wishes" className="bg-sage-pale/50 px-5 py-24">
       <div className="mx-auto max-w-2xl">
-        <Heading kicker="Blessings" title="Guest Wishes" sub="Leave a few words for Arun & Mariya. Your wish appears here for everyone to see." />
+        <Heading kicker="Blessings" title="Guest Wishes" sub="Leave a few words for us. Your wish appears here for everyone to see." />
 
         {myId ? (
           <div className="mb-10 border border-gold bg-white p-6 text-center shadow-lg shadow-sage/10">
