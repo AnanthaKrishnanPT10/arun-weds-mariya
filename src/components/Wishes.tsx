@@ -1,7 +1,11 @@
 import { useEffect, useState, type SubmitEvent } from 'react'
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc } from 'firebase/firestore'
 import { auth, db, ensureGuest } from '../firebase'
+import { asset } from '../config'
 import Heading from './Heading'
+
+
+const BACKGROUND = 'wishes-bg.webp'
 
 type Wish = { id: string; name: string; message: string; createdAt: Date | null }
 
@@ -9,7 +13,8 @@ const MAX_NAME = 40
 const MAX_MSG = 300
 const SHOW = 30 // how many wishes to load 
 
-const field = 'w-full border border-sage/30 bg-white px-4 py-3 text-ink outline-none focus:border-gold'
+const field = 'w-full border border-white/30 bg-white/10 px-4 py-3 text-white outline-none placeholder:text-white/60 focus:border-gold'
+const glass = 'bg-white/10 shadow-xl shadow-black/20 backdrop-blur-md' // the frosted, see-through card look
 const fmt = (d: Date | null) =>
   d ? d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
 
@@ -78,47 +83,51 @@ export default function Wishes() {
   }
 
   return (
-    <section id="wishes" className="bg-sage-pale/50 px-5 py-24">
-      <div className="mx-auto max-w-2xl">
-        <Heading kicker="Blessings" title="Guest Wishes" sub="Leave a few words for us. Your wish appears here for everyone to see." />
+    <section id="wishes" className="relative px-5 py-24 [clip-path:inset(0)]">
+      {/* photo + dark tint stay put behind the scrolling content, clipped to this section */}
+      <div className="fixed inset-0 bg-sage-dark bg-cover bg-center" style={{ backgroundImage: `url(${asset(BACKGROUND)})` }} />
+      <div className="fixed inset-0 bg-black/55" />
+
+      <div className="relative mx-auto max-w-2xl">
+        <Heading light kicker="Blessings" title="Guest Wishes" sub="Leave a few words for Arun & Mariya. Your wish appears here for everyone to see." />
 
         {myId ? (
-          <div className="mb-10 border border-gold bg-white p-6 text-center shadow-lg shadow-sage/10">
-            <p className="font-script text-4xl text-sage-dark">Thank you!</p>
-            <p className="mt-1 text-sm text-ink/70">Your wish is at the top of the wall below.</p>
+          <div className={`mb-10 border border-gold/60 p-6 text-center ${glass}`}>
+            <p className="font-script text-4xl text-white">Thank you!</p>
+            <p className="mt-1 text-sm text-white/80">Your wish is at the top of the wall below.</p>
           </div>
         ) : (
-          <form onSubmit={send} className="mb-10 space-y-4 bg-white p-6 shadow-lg shadow-sage/10">
+          <form onSubmit={send} className={`mb-10 space-y-4 border border-white/25 p-6 ${glass}`}>
             <input className={field} placeholder="Your name" aria-label="Your name" maxLength={MAX_NAME} value={name} onChange={(e) => setName(e.target.value)} />
             <div>
               <textarea className={field} rows={4} placeholder="Your wish for the couple" aria-label="Your wish for the couple" maxLength={MAX_MSG} value={message} onChange={(e) => setMessage(e.target.value)} />
-              <p className="mt-1 text-right text-xs text-ink/60">{message.length}/{MAX_MSG}</p>
+              <p className="mt-1 text-right text-xs text-white/60">{message.length}/{MAX_MSG}</p>
             </div>
             {/* honeypot: hidden from people, tempting for bots */}
             <input tabIndex={-1} autoComplete="off" aria-hidden="true" name="website" value={trap} onChange={(e) => setTrap(e.target.value)} className="absolute -left-[9999px] size-0 opacity-0" />
-            {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-            <button disabled={sending} className="w-full border-2 border-gold bg-gold py-3 text-xs font-medium uppercase tracking-[.2em] text-white hover:bg-transparent hover:text-gold-dark disabled:opacity-60">
+            {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+            <button disabled={sending} className="w-full border-2 border-gold bg-gold py-3 text-xs font-medium uppercase tracking-[.2em] text-white hover:bg-transparent hover:text-gold disabled:opacity-60">
               {sending ? 'Sending…' : 'Send Wish'}
             </button>
           </form>
         )}
 
-        {loading && <p className="text-center text-ink/70">Loading wishes…</p>}
-        {loadError && <p className="text-center text-ink/70">Couldn’t load the wishes just now. Please refresh in a moment.</p>}
-        {!loading && !loadError && wishes.length === 0 && <p className="text-center text-ink/70">Be the first to leave a wish!</p>}
+        {loading && <p className="text-center text-white/80">Loading wishes…</p>}
+        {loadError && <p className="text-center text-white/80">Couldn’t load the wishes just now. Please refresh in a moment.</p>}
+        {!loading && !loadError && wishes.length === 0 && <p className="text-center text-white/80">Be the first to leave a wish!</p>}
 
         <ul className="space-y-4">
           {wishes.map((w) => (
-            <li key={w.id} className={`border bg-white p-5 shadow-md shadow-sage/10 ${w.id === myId ? 'border-gold' : 'border-sage-pale'}`}>
+            <li key={w.id} className={`border p-5 ${glass} ${w.id === myId ? 'border-gold/70' : 'border-white/20'}`}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <h3 className="font-display text-lg text-sage-dark">{w.name}</h3>
-                <span className="text-xs uppercase tracking-[.15em] text-gold-dark">{fmt(w.createdAt)}</span>
+                <h3 className="font-display text-lg text-white">{w.name}</h3>
+                <span className="text-xs uppercase tracking-[.15em] text-gold">{fmt(w.createdAt)}</span>
               </div>
-              <p className="mt-2 whitespace-pre-wrap break-words text-ink">{w.message}</p>
+              <p className="mt-2 whitespace-pre-wrap break-words text-white/90">{w.message}</p>
             </li>
           ))}
         </ul>
-        {wishes.length >= SHOW && <p className="mt-6 text-center text-xs uppercase tracking-[.2em] text-sage">Showing the latest {SHOW} wishes</p>}
+        {wishes.length >= SHOW && <p className="mt-6 text-center text-xs uppercase tracking-[.2em] text-white/70">Showing the latest {SHOW} wishes</p>}
       </div>
     </section>
   )
